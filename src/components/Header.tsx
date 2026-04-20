@@ -39,10 +39,9 @@ export default function Header({ locale }: Props) {
             <img
               src="/logo.png"
               alt="Ethika"
-              width={36}
-              height={36}
-              className="w-9 h-9 object-contain"
-              style={{ background: 'transparent' }}
+              width={40}
+              height={50}
+              className="h-10 w-auto object-contain"
             />
             <div className="hidden sm:block">
               <span className="text-ethika-green font-bold text-lg leading-tight tracking-tight block">

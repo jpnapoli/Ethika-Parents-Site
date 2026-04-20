@@ -128,7 +128,8 @@ export default function HomeClient({ locale }: Props) {
         <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
           {/* Header */}
           <div className="bg-ethika-green p-6 rounded-t-xl text-white text-center">
-            <div className="text-4xl mb-2">🌳</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Ethika" className="h-16 w-auto mx-auto mb-1" />
             <h2 className="text-xl font-bold">
               {isAr ? "مرحباً بك في إثيكا" : "Welcome to Ethika"}
             </h2>
