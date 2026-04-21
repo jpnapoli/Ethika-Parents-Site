@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Star, Globe, Link, Email, Calendar, Help } from "@carbon/icons-react";
 
 type Props = { locale: string };
 
@@ -9,113 +10,89 @@ export default function FromSekClient({ locale }: Props) {
   const isAr = locale === "ar";
 
   const sections = [
-    {
-      titleKey: "academic_title",
-      contentKey: "academic_content",
-      signerKey: "academic_signer",
-      dateKey: "academic_date",
-    },
-    {
-      titleKey: "classroom_title",
-      contentKey: "classroom_content",
-      signerKey: "classroom_signer",
-      dateKey: "classroom_date",
-    },
-    {
-      titleKey: "escalation_title",
-      contentKey: "escalation_content",
-      signerKey: "escalation_signer",
-      dateKey: "escalation_date",
-    },
+    { titleKey: "academic_title", contentKey: "academic_content", signerKey: "academic_signer", dateKey: "academic_date" },
+    { titleKey: "classroom_title", contentKey: "classroom_content", signerKey: "classroom_signer", dateKey: "classroom_date" },
+    { titleKey: "escalation_title", contentKey: "escalation_content", signerKey: "escalation_signer", dateKey: "escalation_date" },
   ];
 
   return (
     <div className="animate-fade-in">
-      <section className="bg-brand-navy text-white py-8 sm:py-12">
+      <div className="bg-gradient-to-r from-emerald-600 via-ethika-green to-emerald-700 text-white py-8">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-2xl sm:text-3xl font-semibold mb-2">{t("title")}</h1>
-          <p className="text-base text-blue-200">{t("subtitle")}</p>
+          <h1 className="text-xl sm:text-2xl font-bold mb-1">{t("title")}</h1>
+          <p className="text-sm text-emerald-100">{t("subtitle")}</p>
         </div>
-      </section>
+      </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         {/* Signed Statements */}
         {sections.map((sec) => (
-          <section key={sec.titleKey} className="card p-6 sm:p-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="voice-tag-sek-says text-xs">
-                {isAr ? "إثيكا تقول" : "Ethika says"}
+          <section key={sec.titleKey} className="bg-white rounded-2xl border border-neutral-200 p-5 sm:p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-ethika-green">
+                <Star size={12} />
+                {isAr ? "\u0625\u062B\u064A\u0643\u0627 \u062A\u0642\u0648\u0644" : "Ethika says"}
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-semibold text-brand-navy mb-4">{t(sec.titleKey)}</h2>
-            <div className="text-sm text-carbon-gray-70 leading-relaxed whitespace-pre-line mb-6">
-              {t(sec.contentKey)}
-            </div>
-            <div className="border-t border-carbon-gray-20 pt-4 mt-4">
-              <p className="text-sm font-medium text-brand-navy">{t(sec.signerKey)}</p>
-              <p className="text-xs text-carbon-gray-50 mt-1">{t(sec.dateKey)}</p>
+            <h2 className="text-lg font-bold text-neutral-800 mb-3">{t(sec.titleKey)}</h2>
+            <div className="text-sm text-neutral-600 leading-relaxed whitespace-pre-line mb-4">{t(sec.contentKey)}</div>
+            <div className="border-t border-neutral-100 pt-3">
+              <p className="text-sm font-medium text-ethika-green">{t(sec.signerKey)}</p>
+              <p className="text-xs text-neutral-400 mt-0.5">{t(sec.dateKey)}</p>
             </div>
           </section>
         ))}
 
-        {/* Escalation contacts */}
-        <section className="tile">
-          <h2 className="text-lg font-semibold text-brand-navy mb-4">
-            {isAr ? "تواصل معنا" : "Contact Us"}
-          </h2>
+        {/* Contact */}
+        <section className="bg-neutral-50 rounded-2xl border border-neutral-200 p-5">
+          <h2 className="text-base font-bold text-neutral-800 mb-4">{isAr ? "\u062A\u0648\u0627\u0635\u0644 \u0645\u0639\u0646\u0627" : "Connect With Us"}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <a href="#" className="card p-4 text-center hover:border-brand-navy transition-all">
-              <svg className="w-5 h-5 mx-auto text-brand-navy mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-              <p className="text-xs font-medium text-carbon-gray-100">{t("contact_teacher")}</p>
+            <a href="https://ethika.digital" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-neutral-200 p-4 text-center hover:border-ethika-green hover:shadow-sm transition-all">
+              <Globe size={20} className="mx-auto text-ethika-green mb-2" />
+              <p className="text-xs font-semibold text-neutral-700">{t("contact_teacher")}</p>
             </a>
-            <a href="mailto:counsellor@ethika.edu.sa" className="card p-4 text-center hover:border-brand-navy transition-all">
-              <svg className="w-5 h-5 mx-auto text-brand-navy mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-              </svg>
-              <p className="text-xs font-medium text-carbon-gray-100">{t("contact_counsellor")}</p>
+            <a href="https://ethika.digital" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-neutral-200 p-4 text-center hover:border-ethika-green hover:shadow-sm transition-all">
+              <Link size={20} className="mx-auto text-ethika-green mb-2" />
+              <p className="text-xs font-semibold text-neutral-700">{t("contact_counsellor")}</p>
             </a>
-            <a href="mailto:head@ethika.edu.sa" className="card p-4 text-center hover:border-brand-navy transition-all">
-              <svg className="w-5 h-5 mx-auto text-brand-navy mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-              </svg>
-              <p className="text-xs font-medium text-carbon-gray-100">{t("contact_head")}</p>
+            <a href="https://ethika.digital" target="_blank" rel="noopener noreferrer" className="bg-white rounded-xl border border-neutral-200 p-4 text-center hover:border-ethika-green hover:shadow-sm transition-all">
+              <Email size={20} className="mx-auto text-ethika-green mb-2" />
+              <p className="text-xs font-semibold text-neutral-700">{t("contact_head")}</p>
             </a>
           </div>
         </section>
 
         {/* Workshop */}
-        <section className="card p-6 border-l-4 rtl:border-l-0 rtl:border-r-4 border-brand-gold">
-          <h2 className="text-lg font-semibold text-brand-navy mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5 text-brand-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
+        <section className="bg-amber-50 rounded-2xl border border-amber-200 p-5">
+          <h2 className="text-base font-bold text-neutral-800 mb-2 flex items-center gap-2">
+            <Calendar size={20} className="text-amber-600" />
             {t("workshop_title")}
           </h2>
-          <p className="text-sm text-carbon-gray-70 mb-3">{t("workshop_desc")}</p>
-          <div className="bg-carbon-gray-10 p-4 rounded-sm mb-3">
-            <p className="text-xs font-semibold text-brand-gold mb-1">{t("workshop_next")}</p>
-            <p className="text-sm text-carbon-gray-70">{t("workshop_date")}</p>
+          <p className="text-sm text-neutral-600 mb-3">{t("workshop_desc")}</p>
+          <div className="bg-white rounded-xl p-3 mb-3 border border-amber-100">
+            <p className="text-xs font-semibold text-amber-700 mb-1">{t("workshop_next")}</p>
+            <p className="text-sm text-neutral-600">{t("workshop_date")}</p>
           </div>
-          <button className="btn-primary text-sm px-5 py-2.5 bg-brand-gold hover:bg-brand-gold-light">
+          <button className="bg-ethika-green text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-ethika-green-dark transition-all">
             {t("workshop_register")}
           </button>
         </section>
 
         {/* Parents Asked */}
-        <section className="card p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-brand-navy mb-2">{t("parents_asked")}</h2>
-          <p className="text-sm text-carbon-gray-60 mb-5">{t("parents_asked_desc")}</p>
-          <div className="space-y-5">
-            <div className="border-l-4 rtl:border-l-0 rtl:border-r-4 border-brand-navy pl-4 rtl:pl-0 rtl:pr-4">
-              <p className="text-sm font-semibold text-carbon-gray-100 mb-1">{t("parents_q1")}</p>
-              <p className="text-sm text-carbon-gray-70 leading-relaxed">{t("parents_a1")}</p>
+        <section className="bg-white rounded-2xl border border-neutral-200 p-5">
+          <h2 className="text-base font-bold text-neutral-800 mb-2 flex items-center gap-2">
+            <Help size={20} className="text-neutral-500" />
+            {t("parents_asked")}
+          </h2>
+          <p className="text-sm text-neutral-500 mb-4">{t("parents_asked_desc")}</p>
+          <div className="space-y-4">
+            <div className="bg-neutral-50 rounded-xl p-4">
+              <p className="text-sm font-semibold text-neutral-800 mb-1">{t("parents_q1")}</p>
+              <p className="text-sm text-neutral-600 leading-relaxed">{t("parents_a1")}</p>
             </div>
-            <div className="border-l-4 rtl:border-l-0 rtl:border-r-4 border-brand-navy pl-4 rtl:pl-0 rtl:pr-4">
-              <p className="text-sm font-semibold text-carbon-gray-100 mb-1">{t("parents_q2")}</p>
-              <p className="text-sm text-carbon-gray-70 leading-relaxed">{t("parents_a2")}</p>
+            <div className="bg-neutral-50 rounded-xl p-4">
+              <p className="text-sm font-semibold text-neutral-800 mb-1">{t("parents_q2")}</p>
+              <p className="text-sm text-neutral-600 leading-relaxed">{t("parents_a2")}</p>
             </div>
           </div>
         </section>

@@ -1,219 +1,460 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { getStats } from "@/data/stats";
+import { TOOLS } from "@/data/tools";
+import { ACTIVITIES } from "@/data/activities";
+
+/* ── IBM Carbon Design System icons ── */
+import {
+  Misuse,
+  Security,
+  Screen,
+  Locked,
+  ChatBot,
+  WarningAlt,
+  Explore,
+  Caution,
+  PedestrianFamily,
+  Scales,
+  Book,
+  SkillLevelBasic,
+  SkillLevelIntermediate,
+  SkillLevelAdvanced,
+  ArrowRight,
+  ArrowLeft,
+  Checkmark,
+  User,
+  Tools,
+  Report,
+  UserMultiple,
+  Building,
+  Favorite,
+  WarningFilled,
+  WatsonxAi,
+  Idea,
+  Search,
+  Education,
+  Blog,
+  CheckmarkFilled,
+  Phone,
+  Globe,
+} from "@carbon/icons-react";
 
 type Props = { locale: string };
 
+/* ── Questionnaire definitions ── */
+type UserProfile = {
+  id: string;
+  avatar: string;
+  name: string;
+  childAges: string[];
+  concerns: string[];
+  interests: string[];
+  experience: string;         // "new" | "some" | "experienced"
+  completedAt: string;
+};
+
 const AVATARS = [
-  { emoji: "🌳", label: "Tree" },
-  { emoji: "🦉", label: "Owl" },
-  { emoji: "🌻", label: "Sunflower" },
-  { emoji: "🦋", label: "Butterfly" },
-  { emoji: "🐝", label: "Bee" },
-  { emoji: "🌙", label: "Moon" },
-  { emoji: "🐢", label: "Turtle" },
-  { emoji: "🦊", label: "Fox" },
-  { emoji: "🌊", label: "Wave" },
-  { emoji: "🎨", label: "Palette" },
-  { emoji: "🧩", label: "Puzzle" },
-  { emoji: "🏔️", label: "Mountain" },
+  { emoji: "\u{1F333}", label: "Tree" },
+  { emoji: "\u{1F989}", label: "Owl" },
+  { emoji: "\u{1F33B}", label: "Sunflower" },
+  { emoji: "\u{1F98B}", label: "Butterfly" },
+  { emoji: "\u{1F41D}", label: "Bee" },
+  { emoji: "\u{1F319}", label: "Moon" },
+  { emoji: "\u{1F422}", label: "Turtle" },
+  { emoji: "\u{1F98A}", label: "Fox" },
+  { emoji: "\u{1F30A}", label: "Wave" },
+  { emoji: "\u{1F3A8}", label: "Palette" },
+  { emoji: "\u{1F9E9}", label: "Puzzle" },
+  { emoji: "\u{1F3D4}\u{FE0F}", label: "Mountain" },
 ];
 
-const TRIAGE_CARDS = [
-  {
-    key: "crisis",
-    href: "/crisis",
-    icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
-    color: "border-crisis-red hover:bg-red-50",
-    textKey: "card_crisis",
-    descKey: "card_crisis_desc",
-  },
-  {
-    key: "explore",
-    href: "/try-ai",
-    icon: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z",
-    color: "border-ethika-gold hover:bg-amber-50",
-    textKey: "card_explore",
-    descKey: "card_explore_desc",
-  },
-  {
-    key: "understand",
-    href: "/risks",
-    icon: "M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18",
-    color: "border-ethika-navy hover:bg-blue-50",
-    textKey: "card_understand",
-    descKey: "card_understand_desc",
-  },
-  {
-    key: "read",
-    href: "/read-deeper",
-    icon: "M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25",
-    color: "border-ethika-teal hover:bg-teal-50",
-    textKey: "card_read",
-    descKey: "card_read_desc",
-  },
-  {
-    key: "rights",
-    href: "/rights",
-    icon: "M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z",
-    color: "border-safe-green hover:bg-green-50",
-    textKey: "card_rights",
-    descKey: "card_rights_desc",
-  },
+/* Carbon icon components mapped to concern keys */
+const CONCERN_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  deepfakes: Misuse,
+  online_safety: Security,
+  screen_time: Screen,
+  privacy: Locked,
+  chatbots: ChatBot,
+  cyberbullying: WarningAlt,
+};
+const CONCERN_OPTIONS = [
+  { key: "deepfakes" },
+  { key: "online_safety" },
+  { key: "screen_time" },
+  { key: "privacy" },
+  { key: "chatbots" },
+  { key: "cyberbullying" },
+];
+
+/* Carbon icon components mapped to interest keys */
+const INTEREST_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  try_tools: Explore,
+  learn_risks: Caution,
+  activities: PedestrianFamily,
+  legal_rights: Scales,
+  expert_recs: Book,
+};
+const INTEREST_OPTIONS = [
+  { key: "try_tools" },
+  { key: "learn_risks" },
+  { key: "activities" },
+  { key: "legal_rights" },
+  { key: "expert_recs" },
 ];
 
 const AGE_BANDS = ["3_5", "6_9", "10_13", "14_16"] as const;
 
 export default function HomeClient({ locale }: Props) {
   const t = useTranslations("home");
-  const [selectedAges, setSelectedAges] = useState<string[]>([]);
-  const [ageSaved, setAgeSaved] = useState(false);
-  const [hasStoredAges, setHasStoredAges] = useState(false);
+  const tq = useTranslations("questionnaire");
+  const stats = getStats();
+  const isAr = locale === "ar";
+
+  // User profile state
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1); // 1=terms, 2=avatar, 3=ages, 4=concerns, 5=interests, 6=experience
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [userId, setUserId] = useState("");
-  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [selectedAges, setSelectedAges] = useState<string[]>([]);
+  const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [selectedExperience, setSelectedExperience] = useState("new");
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("ethika_ages");
-    const user = localStorage.getItem("ethika_user");
-    if (stored) {
-      setSelectedAges(JSON.parse(stored));
-      setHasStoredAges(true);
-    }
+    const user = localStorage.getItem("ethika_profile_v3");
     if (user) {
-      const userData = JSON.parse(user);
-      setUserId(userData.id);
-      setSelectedAvatar(userData.avatar);
-      setDisplayName(userData.name);
-      setTermsAccepted(true);
+      try {
+        const p = JSON.parse(user) as UserProfile;
+        setProfile(p);
+        setSelectedAges(p.childAges);
+        setSelectedConcerns(p.concerns);
+        setSelectedInterests(p.interests);
+        setSelectedExperience(p.experience);
+        setSelectedAvatar(p.avatar);
+        setDisplayName(p.name);
+      } catch { /* ignore */ }
     } else {
       setShowOnboarding(true);
     }
+    setLoaded(true);
   }, []);
 
-  const generateId = () => {
-    return "ETK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-  };
+  const generateId = () => "ETK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
   const completeOnboarding = () => {
     const id = generateId();
-    const userData = { id, avatar: selectedAvatar, name: displayName || id };
-    localStorage.setItem("ethika_user", JSON.stringify(userData));
-    setUserId(id);
-    setShowOnboarding(false);
+    const p: UserProfile = {
+      id,
+      avatar: selectedAvatar || "\u{1F333}",
+      name: displayName || id,
+      childAges: selectedAges,
+      concerns: selectedConcerns,
+      interests: selectedInterests,
+      experience: selectedExperience,
+      completedAt: new Date().toISOString(),
+    };
+    localStorage.setItem("ethika_profile_v3", JSON.stringify(p));
     document.cookie = `ethika_uid=${id}; path=/; max-age=31536000; SameSite=Lax`;
+    setProfile(p);
+    setShowOnboarding(false);
   };
 
-  const toggleAge = (age: string) => {
-    setSelectedAges((prev) => prev.includes(age) ? prev.filter((a) => a !== age) : [...prev, age]);
+  const skipOnboarding = () => {
+    setShowOnboarding(false);
   };
 
-  const saveAges = () => {
-    localStorage.setItem("ethika_ages", JSON.stringify(selectedAges));
-    setAgeSaved(true);
-    setHasStoredAges(true);
-    setTimeout(() => setAgeSaved(false), 3000);
-  };
+  const toggleAge = (age: string) => setSelectedAges(prev => prev.includes(age) ? prev.filter(a => a !== age) : [...prev, age]);
+  const toggleConcern = (c: string) => setSelectedConcerns(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+  const toggleInterest = (i: string) => setSelectedInterests(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
 
-  const isAr = locale === "ar";
+  // Personalized recommendations
+  const recommendedTools = useMemo(() => {
+    if (!profile || profile.childAges.length === 0) return TOOLS.slice(0, 3);
+    const ageRanges = profile.childAges.map(a => {
+      const parts = a.split("_").map(Number);
+      return { min: parts[0], max: parts[1] };
+    });
+    return TOOLS.filter(tool =>
+      ageRanges.some(range => tool.ageMin <= range.max && tool.ageMax >= range.min)
+    ).slice(0, 3);
+  }, [profile]);
 
-  // Onboarding Overlay
+  const recommendedActivities = useMemo(() => {
+    if (!profile || profile.childAges.length === 0) return ACTIVITIES.slice(0, 2);
+    const has6_9 = profile.childAges.includes("6_9") || profile.childAges.includes("3_5");
+    const has10_13 = profile.childAges.includes("10_13") || profile.childAges.includes("14_16");
+    return ACTIVITIES.filter(a =>
+      (has6_9 && a.ageBand === "6-9") || (has10_13 && a.ageBand === "10-13")
+    ).slice(0, 2);
+  }, [profile]);
+
+  if (!loaded) return null;
+
+  /* ─── Onboarding / Questionnaire Overlay ─── */
   if (showOnboarding) {
+    const totalSteps = 6;
+    const progressPct = ((onboardingStep - 1) / (totalSteps - 1)) * 100;
+
     return (
-      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
-        <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-          {/* Header */}
-          <div className="bg-ethika-green p-6 rounded-t-xl text-white text-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Ethika" className="h-16 w-auto mx-auto mb-1" />
-            <h2 className="text-xl font-bold">
-              {isAr ? "مرحباً بك في إثيكا" : "Welcome to Ethika"}
-            </h2>
-            <p className="text-sm opacity-90 mt-1">
-              {isAr ? "أدوات الآباء للذكاء الاصطناعي" : "Parents AI Toolkit"}
-            </p>
+      <div className="fixed inset-0 bg-gradient-to-br from-neutral-900/70 to-neutral-900/90 z-50 flex items-center justify-center p-4 animate-fade-in">
+        <div className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto shadow-2xl">
+          {/* Progress bar */}
+          <div className="px-6 pt-5 pb-0">
+            <div className="flex items-center justify-between text-xs text-neutral-400 mb-2">
+              <span>{isAr ? `الخطوة ${onboardingStep} من ${totalSteps}` : `Step ${onboardingStep} of ${totalSteps}`}</span>
+              <button onClick={skipOnboarding} className="hover:text-neutral-600 transition-colors">
+                {isAr ? "تخطي" : "Skip"}
+              </button>
+            </div>
+            <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-ethika-green rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPct}%` }} />
+            </div>
           </div>
 
           <div className="p-6">
+            {/* Step 1: Welcome + Terms */}
             {onboardingStep === 1 && (
               <div className="animate-fade-in">
-                <h3 className="text-base font-semibold text-gray-100 mb-3">
-                  {isAr ? "قبل أن نبدأ" : "Before we begin"}
-                </h3>
-                <div className="bg-gray-10 rounded-lg p-4 text-sm text-gray-70 leading-relaxed mb-4 max-h-48 overflow-y-auto">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-ethika-green-50 rounded-2xl flex items-center justify-center">
+                    <span className="text-4xl">{"\u{1F333}"}</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+                    {isAr ? "مرحباً بك في إثيكا" : "Welcome to Ethika"}
+                  </h2>
+                  <p className="text-base text-neutral-500">
+                    {isAr ? "أدوات الآباء للذكاء الاصطناعي" : "Parents AI Toolkit"}
+                  </p>
+                </div>
+                <div className="bg-neutral-50 rounded-2xl p-5 text-sm text-neutral-600 leading-relaxed mb-5 max-h-44 overflow-y-auto">
                   {isAr ? (
                     <>
-                      <p className="mb-2">هذا الموقع مورد مجاني مقدم لأولياء الأمور المشاركين في ورش عمل إثيكا. باستخدامك لهذا الموقع، فإنك توافق على:</p>
-                      <ul className="list-disc mr-4 space-y-1">
-                        <li>المعلومات المقدمة للأغراض التعليمية وقابلة للتغيير.</li>
-                        <li>الاستخدام يخضع لإرشادات إثيكا.</li>
+                      <p className="mb-2 font-medium text-neutral-700">هذا مورد مجاني من إثيكا ديجيتال للآباء للتعامل مع الذكاء الاصطناعي والحياة الرقمية لأطفالهم.</p>
+                      <ul className="list-disc mr-4 space-y-1 text-xs">
+                        <li>المعلومات لأغراض تعليمية وقابلة للتغيير.</li>
                         <li>لا نجمع أي بيانات شخصية. تُحفظ تفضيلاتك فقط على جهازك.</li>
                         <li>المحتوى لا يشكل نصيحة قانونية أو طبية.</li>
                       </ul>
                     </>
                   ) : (
                     <>
-                      <p className="mb-2">This website is a complimentary resource for parents attending Ethika workshops. By using this site, you agree that:</p>
-                      <ul className="list-disc ml-4 space-y-1">
-                        <li>Information provided is for educational purposes and subject to change.</li>
-                        <li>Use of this website is subject to Ethika's guidelines.</li>
+                      <p className="mb-2 font-medium text-neutral-700">This is a free resource from Ethika Digital for parents navigating AI and children's digital lives.</p>
+                      <ul className="list-disc ml-4 space-y-1 text-xs">
+                        <li>Information is for educational purposes and subject to change.</li>
                         <li>We do not collect any personal data. Your preferences are stored only on your device.</li>
                         <li>Content does not constitute legal or medical advice.</li>
                       </ul>
                     </>
                   )}
                 </div>
-                <label className="flex items-start gap-3 cursor-pointer mb-4">
+                <label className="flex items-start gap-3 cursor-pointer mb-5">
                   <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-gray-30 text-ethika-green accent-[#35a318]" />
-                  <span className="text-sm text-gray-70">
-                    {isAr ? "أوافق على هذه الشروط وأفهم أن المعلومات قابلة للتغيير." : "I agree to these terms and understand information is subject to change."}
+                    className="mt-0.5 w-5 h-5 rounded border-neutral-300 text-ethika-green accent-[#35a318]" />
+                  <span className="text-sm text-neutral-600">
+                    {isAr ? "أوافق على هذه الشروط" : "I agree to these terms"}
                   </span>
                 </label>
                 <button onClick={() => setOnboardingStep(2)} disabled={!termsAccepted}
-                  className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed">
-                  {isAr ? "متابعة" : "Continue"}
+                  className="w-full bg-ethika-green text-white font-semibold py-3.5 rounded-2xl text-base transition-all hover:bg-ethika-green-dark disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2">
+                  {isAr ? "لنبدأ" : "Let's Begin"} <ArrowRight size={18} />
                 </button>
               </div>
             )}
 
+            {/* Step 2: Avatar */}
             {onboardingStep === 2 && (
               <div className="animate-fade-in">
-                <h3 className="text-base font-semibold text-gray-100 mb-1">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">
                   {isAr ? "اختر صورتك الرمزية" : "Choose your avatar"}
-                </h3>
-                <p className="text-xs text-gray-50 mb-4">
+                </h2>
+                <p className="text-sm text-neutral-500 mb-5">
                   {isAr ? "للخصوصية الكاملة — لا حاجة لاسمك الحقيقي." : "Full privacy — no real name needed."}
                 </p>
-                <div className="grid grid-cols-4 gap-2 mb-5">
+                <div className="grid grid-cols-4 gap-2.5 mb-5">
                   {AVATARS.map((a) => (
                     <button key={a.emoji} onClick={() => setSelectedAvatar(a.emoji)}
-                      className={`text-2xl p-3 rounded-lg border-2 transition-all
-                        ${selectedAvatar === a.emoji ? "border-ethika-green bg-ethika-green-50 scale-105" : "border-gray-20 hover:border-ethika-green-light"}`}
+                      className={`text-3xl p-3 rounded-2xl border-2 transition-all
+                        ${selectedAvatar === a.emoji ? "border-ethika-green bg-ethika-green-50 scale-105 shadow-sm" : "border-neutral-200 hover:border-ethika-green-light hover:bg-neutral-50"}`}
                       aria-label={a.label}>
                       {a.emoji}
                     </button>
                   ))}
                 </div>
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-gray-70 block mb-1">
+                <div className="mb-5">
+                  <label className="text-sm font-medium text-neutral-600 block mb-1.5">
                     {isAr ? "اسم العرض (اختياري)" : "Display name (optional)"}
                   </label>
                   <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
                     placeholder={isAr ? "مثال: أم أحمد" : "e.g. Ahmed's Parent"}
-                    className="w-full text-sm px-3 py-2.5 border border-gray-20 rounded-lg focus:border-ethika-green focus:outline-none bg-white text-gray-100 placeholder:text-gray-50" />
-                  <p className="text-xs text-gray-50 mt-1">
-                    {isAr ? "يمكنك استخدام أي اسم. لا شيء شخصي مطلوب." : "Use any name you like. Nothing personal required."}
-                  </p>
+                    className="w-full text-base px-4 py-3 border border-neutral-200 rounded-2xl focus:border-ethika-green focus:outline-none bg-white text-neutral-800 placeholder:text-neutral-400" />
                 </div>
-                <button onClick={completeOnboarding} disabled={!selectedAvatar}
-                  className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed">
-                  {isAr ? "ابدأ الاستكشاف" : "Start Exploring"}
-                </button>
+                <div className="flex gap-3">
+                  <button onClick={() => setOnboardingStep(1)} className="px-5 py-3 text-sm font-medium text-neutral-500 hover:text-neutral-700 transition-colors inline-flex items-center gap-1">
+                    <ArrowLeft size={16} /> {isAr ? "رجوع" : "Back"}
+                  </button>
+                  <button onClick={() => setOnboardingStep(3)} disabled={!selectedAvatar}
+                    className="flex-1 bg-ethika-green text-white font-semibold py-3.5 rounded-2xl text-base transition-all hover:bg-ethika-green-dark disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2">
+                    {isAr ? "التالي" : "Next"} <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Child Ages */}
+            {onboardingStep === 3 && (
+              <div className="animate-fade-in">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">
+                  {tq("ages_title")}
+                </h2>
+                <p className="text-sm text-neutral-500 mb-5">
+                  {tq("ages_subtitle")}
+                </p>
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {AGE_BANDS.map((age) => (
+                    <button key={age} onClick={() => toggleAge(age)}
+                      className={`p-4 rounded-2xl border-2 text-center transition-all
+                        ${selectedAges.includes(age)
+                          ? "border-ethika-green bg-ethika-green-50 shadow-sm"
+                          : "border-neutral-200 hover:border-neutral-300 bg-white"
+                        }`}>
+                      <span className="text-2xl block mb-1">
+                        {age === "3_5" ? "\u{1F476}" : age === "6_9" ? "\u{1F9D2}" : age === "10_13" ? "\u{1F9D1}" : "\u{1F9D1}\u200D\u{1F4BB}"}
+                      </span>
+                      <span className={`text-sm font-semibold ${selectedAges.includes(age) ? "text-ethika-green-dark" : "text-neutral-700"}`}>
+                        {t(`age_${age}`)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setOnboardingStep(2)} className="px-5 py-3 text-sm font-medium text-neutral-500 hover:text-neutral-700 inline-flex items-center gap-1">
+                    <ArrowLeft size={16} /> {isAr ? "رجوع" : "Back"}
+                  </button>
+                  <button onClick={() => setOnboardingStep(4)}
+                    className="flex-1 bg-ethika-green text-white font-semibold py-3.5 rounded-2xl text-base transition-all hover:bg-ethika-green-dark inline-flex items-center justify-center gap-2">
+                    {selectedAges.length > 0 ? (isAr ? "التالي" : "Next") : (isAr ? "تخطي" : "Skip")} <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Concerns */}
+            {onboardingStep === 4 && (
+              <div className="animate-fade-in">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">
+                  {tq("concerns_title")}
+                </h2>
+                <p className="text-sm text-neutral-500 mb-5">
+                  {tq("concerns_subtitle")}
+                </p>
+                <div className="space-y-2.5 mb-6">
+                  {CONCERN_OPTIONS.map((c) => (
+                    <button key={c.key} onClick={() => toggleConcern(c.key)}
+                      className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left rtl:text-right transition-all
+                        ${selectedConcerns.includes(c.key)
+                          ? "border-ethika-green bg-ethika-green-50"
+                          : "border-neutral-200 hover:border-neutral-300 bg-white"
+                        }`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${selectedConcerns.includes(c.key) ? "bg-ethika-green text-white" : "bg-neutral-100 text-neutral-500"}`}>
+                        {(() => { const Icon = CONCERN_ICONS[c.key]; return Icon ? <Icon size={20} /> : null; })()}
+                      </div>
+                      <span className={`text-sm font-medium ${selectedConcerns.includes(c.key) ? "text-ethika-green-dark" : "text-neutral-700"}`}>
+                        {tq(`concern_${c.key}`)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setOnboardingStep(3)} className="px-5 py-3 text-sm font-medium text-neutral-500 hover:text-neutral-700 inline-flex items-center gap-1">
+                    <ArrowLeft size={16} /> {isAr ? "رجوع" : "Back"}
+                  </button>
+                  <button onClick={() => setOnboardingStep(5)}
+                    className="flex-1 bg-ethika-green text-white font-semibold py-3.5 rounded-2xl text-base transition-all hover:bg-ethika-green-dark inline-flex items-center justify-center gap-2">
+                    {selectedConcerns.length > 0 ? (isAr ? "التالي" : "Next") : (isAr ? "تخطي" : "Skip")} <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Interests */}
+            {onboardingStep === 5 && (
+              <div className="animate-fade-in">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">
+                  {tq("interests_title")}
+                </h2>
+                <p className="text-sm text-neutral-500 mb-5">
+                  {tq("interests_subtitle")}
+                </p>
+                <div className="space-y-2.5 mb-6">
+                  {INTEREST_OPTIONS.map((i) => (
+                    <button key={i.key} onClick={() => toggleInterest(i.key)}
+                      className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 text-left rtl:text-right transition-all
+                        ${selectedInterests.includes(i.key)
+                          ? "border-ethika-green bg-ethika-green-50"
+                          : "border-neutral-200 hover:border-neutral-300 bg-white"
+                        }`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${selectedInterests.includes(i.key) ? "bg-ethika-green text-white" : "bg-neutral-100 text-neutral-500"}`}>
+                        {(() => { const Icon = INTEREST_ICONS[i.key]; return Icon ? <Icon size={20} /> : null; })()}
+                      </div>
+                      <span className={`text-sm font-medium ${selectedInterests.includes(i.key) ? "text-ethika-green-dark" : "text-neutral-700"}`}>
+                        {tq(`interest_${i.key}`)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setOnboardingStep(4)} className="px-5 py-3 text-sm font-medium text-neutral-500 hover:text-neutral-700 inline-flex items-center gap-1">
+                    <ArrowLeft size={16} /> {isAr ? "رجوع" : "Back"}
+                  </button>
+                  <button onClick={() => setOnboardingStep(6)}
+                    className="flex-1 bg-ethika-green text-white font-semibold py-3.5 rounded-2xl text-base transition-all hover:bg-ethika-green-dark inline-flex items-center justify-center gap-2">
+                    {selectedInterests.length > 0 ? (isAr ? "التالي" : "Next") : (isAr ? "تخطي" : "Skip")} <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: Experience */}
+            {onboardingStep === 6 && (
+              <div className="animate-fade-in">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">
+                  {tq("experience_title")}
+                </h2>
+                <p className="text-sm text-neutral-500 mb-5">
+                  {tq("experience_subtitle")}
+                </p>
+                <div className="space-y-3 mb-6">
+                  {(["new", "some", "experienced"] as const).map((level) => (
+                    <button key={level} onClick={() => setSelectedExperience(level)}
+                      className={`w-full p-4 rounded-2xl border-2 text-left rtl:text-right transition-all
+                        ${selectedExperience === level
+                          ? "border-ethika-green bg-ethika-green-50"
+                          : "border-neutral-200 hover:border-neutral-300 bg-white"
+                        }`}>
+                      <span className={`text-sm font-semibold block ${selectedExperience === level ? "text-ethika-green-dark" : "text-neutral-700"}`}>
+                        {tq(`exp_${level}`)}
+                      </span>
+                      <span className="text-xs text-neutral-500 mt-0.5 block">
+                        {tq(`exp_${level}_desc`)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setOnboardingStep(5)} className="px-5 py-3 text-sm font-medium text-neutral-500 hover:text-neutral-700 inline-flex items-center gap-1">
+                    <ArrowLeft size={16} /> {isAr ? "رجوع" : "Back"}
+                  </button>
+                  <button onClick={completeOnboarding}
+                    className="flex-1 bg-ethika-green text-white font-semibold py-3.5 rounded-2xl text-base transition-all hover:bg-ethika-green-dark inline-flex items-center justify-center gap-2">
+                    {isAr ? "ابدأ الاستكشاف" : "Start Exploring"} <Checkmark size={18} />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -222,56 +463,143 @@ export default function HomeClient({ locale }: Props) {
     );
   }
 
+  /* ─── Main Landing Page ─── */
+  const isPersonalized = !!profile;
+  const greeting = profile
+    ? (isAr ? `مرحباً ${profile.name}` : `Welcome back, ${profile.name}`)
+    : (isAr ? "مرحباً بك في إثيكا" : "Welcome to Ethika");
+
   return (
     <div className="animate-fade-in">
-      {/* Welcome back bar */}
-      {userId && (
-        <div className="bg-ethika-green-50 border-b border-ethika-green/20">
-          <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between">
-            <span className="text-sm text-ethika-green-dark flex items-center gap-2">
-              <span className="text-lg">{selectedAvatar}</span>
-              <span className="font-medium">{displayName || userId}</span>
-            </span>
-            <span className="text-xs text-ethika-green/60 font-mono">{userId}</span>
+      {/* ──── TOP: Resource Overview Bar (immediately visible) ──── */}
+      <section className="bg-white border-b border-neutral-100">
+        <div className="max-w-5xl mx-auto px-4 py-5">
+          {/* User greeting row */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              {profile && <span className="text-3xl">{profile.avatar}</span>}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">{greeting}</h1>
+                <p className="text-base text-neutral-500 mt-0.5">
+                  {isPersonalized ? t("hero_subtitle_personal") : t("hero_subtitle")}
+                </p>
+              </div>
+            </div>
+            {!profile && (
+              <button onClick={() => setShowOnboarding(true)}
+                className="hidden sm:flex items-center gap-2 bg-ethika-green text-white text-sm font-semibold px-5 py-2.5 rounded-2xl hover:bg-ethika-green-dark transition-all">
+                <User size={16} />
+                {isAr ? "خصّص تجربتك" : "Personalize"}
+              </button>
+            )}
+          </div>
+
+          {/* Stats counters */}
+          <div className="grid grid-cols-5 gap-2 sm:gap-4">
+            {[
+              { n: stats.tools, label: t("stat_tools"), color: "bg-emerald-50 text-emerald-700", Icon: Tools },
+              { n: stats.cases, label: t("stat_cases"), color: "bg-amber-50 text-amber-700", Icon: Report },
+              { n: stats.experts, label: t("stat_experts"), color: "bg-blue-50 text-blue-700", Icon: UserMultiple },
+              { n: stats.organizations, label: t("stat_orgs"), color: "bg-purple-50 text-purple-700", Icon: Building },
+              { n: stats.activities, label: t("stat_activities"), color: "bg-rose-50 text-rose-700", Icon: Favorite },
+            ].map((stat) => (
+              <div key={stat.label} className={`text-center p-3 sm:p-4 rounded-2xl ${stat.color}`}>
+                <stat.Icon size={20} className="mx-auto mb-1 opacity-60" />
+                <div className="text-2xl sm:text-3xl font-bold">{stat.n}</div>
+                <div className="text-[10px] sm:text-xs mt-0.5 opacity-80">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Age filter chips (if personalized, show as tags) */}
+      {isPersonalized && profile!.childAges.length > 0 && (
+        <div className="bg-neutral-50 border-b border-neutral-100">
+          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-semibold text-neutral-500">{isAr ? "مخصص لأعمار:" : "Personalized for ages:"}</span>
+            {profile!.childAges.map(age => (
+              <span key={age} className="text-xs font-medium px-3 py-1 bg-ethika-green-50 text-ethika-green-dark rounded-full">
+                {t(`age_${age}`)}
+              </span>
+            ))}
+            <button onClick={() => setShowOnboarding(true)} className="text-xs text-ethika-green hover:underline ml-auto">
+              {isAr ? "تعديل" : "Edit"}
+            </button>
           </div>
         </div>
       )}
 
-      {/* Hero / Triage */}
-      <section className="bg-gradient-to-b from-ethika-green-50 to-white py-10 sm:py-16">
+      {/* ──── GUIDED TOUR: Quick Actions (3 primary paths) ──── */}
+      <section className="py-8 sm:py-10 bg-white">
         <div className="max-w-5xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-100 mb-3 tracking-tight">
-              {t("hero_title")}
-            </h1>
-            <p className="text-base sm:text-lg text-gray-60 max-w-2xl mx-auto">
-              {t("hero_subtitle")}
-            </p>
+          <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 mb-2">
+            {isAr ? "كيف يمكننا مساعدتك؟" : "How can we help?"}
+          </h2>
+          <p className="text-base text-neutral-500 mb-6">
+            {isAr ? "اختر مسارك — كل مسار يقودك خطوة بخطوة." : "Choose your path — each one guides you step by step."}
+          </p>
+
+          {/* Primary 3 paths */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {/* Crisis */}
+            <a href={`/${locale}/crisis`}
+              className="group relative overflow-hidden rounded-2xl border-2 border-red-100 bg-gradient-to-br from-red-50 to-white p-6 hover:border-red-300 hover:shadow-lg transition-all">
+              <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center mb-4 group-hover:bg-red-200 transition-colors">
+                <WarningFilled size={28} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-neutral-900 mb-1.5">{t("card_crisis")}</h3>
+              <p className="text-sm text-neutral-500 leading-relaxed">{t("card_crisis_desc")}</p>
+              <div className="mt-4 text-sm font-semibold text-red-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                {isAr ? "ابدأ الآن" : "Get help now"}
+                <ArrowRight size={16} className="flip-rtl" />
+              </div>
+            </a>
+
+            {/* Try AI */}
+            <a href={`/${locale}/try-ai`}
+              className="group relative overflow-hidden rounded-2xl border-2 border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 hover:border-emerald-300 hover:shadow-lg transition-all">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mb-4 group-hover:bg-emerald-200 transition-colors">
+                <WatsonxAi size={28} className="text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-bold text-neutral-900 mb-1.5">{t("card_explore")}</h3>
+              <p className="text-sm text-neutral-500 leading-relaxed">{t("card_explore_desc")}</p>
+              <div className="mt-4 text-sm font-semibold text-emerald-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                {isAr ? "جرّب الآن" : "Try it now"}
+                <ArrowRight size={16} className="flip-rtl" />
+              </div>
+            </a>
+
+            {/* Understand Risks */}
+            <a href={`/${locale}/risks`}
+              className="group relative overflow-hidden rounded-2xl border-2 border-amber-100 bg-gradient-to-br from-amber-50 to-white p-6 hover:border-amber-300 hover:shadow-lg transition-all">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-4 group-hover:bg-amber-200 transition-colors">
+                <Idea size={28} className="text-amber-600" />
+              </div>
+              <h3 className="text-lg font-bold text-neutral-900 mb-1.5">{t("card_understand")}</h3>
+              <p className="text-sm text-neutral-500 leading-relaxed">{t("card_understand_desc")}</p>
+              <div className="mt-4 text-sm font-semibold text-amber-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                {isAr ? "تعلّم الآن" : "Learn more"}
+                <ArrowRight size={16} className="flip-rtl" />
+              </div>
+            </a>
           </div>
 
-          {/* Five Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {TRIAGE_CARDS.map((card, i) => (
-              <a key={card.key} href={`/${locale}${card.href}`}
-                className={`card border-l-4 rtl:border-l-0 rtl:border-r-4 p-5 ${card.color} group transition-all duration-200
-                  ${i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}>
-                <div className="flex items-start gap-3">
-                  <div className="text-gray-70 group-hover:text-ethika-green transition-colors shrink-0 mt-0.5">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={card.icon} />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-sm sm:text-base font-semibold text-gray-100 mb-1 group-hover:text-ethika-green transition-colors">
-                      {t(card.textKey)}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-gray-60 leading-relaxed">{t(card.descKey)}</p>
-                  </div>
+          {/* Secondary links (compact) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { key: "read", href: "/read-deeper", Icon: Book, color: "text-blue-600 bg-blue-50" },
+              { key: "rights", href: "/rights", Icon: Scales, color: "text-purple-600 bg-purple-50" },
+              { key: "hub", href: "/explore", Icon: Search, color: "text-teal-600 bg-teal-50" },
+              { key: "from_sek", href: "/from-sek", Icon: Education, color: "text-ethika-green bg-ethika-green-50" },
+            ].map((item) => (
+              <a key={item.key} href={`/${locale}${item.href}`}
+                className={`flex items-center gap-3 p-3.5 rounded-2xl border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all bg-white`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
+                  <item.Icon size={20} />
                 </div>
-                <div className="mt-3 flex justify-end">
-                  <svg className="w-4 h-4 text-gray-30 group-hover:text-ethika-green transition-all group-hover:translate-x-1 rtl:group-hover:-translate-x-1 flip-rtl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
+                <div>
+                  <span className="text-sm font-semibold text-neutral-800 block">{t(`card_${item.key}`)}</span>
                 </div>
               </a>
             ))}
@@ -279,78 +607,189 @@ export default function HomeClient({ locale }: Props) {
         </div>
       </section>
 
-      {/* Age Selector */}
-      {!hasStoredAges && (
-        <section className="py-10 border-b border-gray-20">
-          <div className="max-w-3xl mx-auto px-4 text-center">
-            <h2 className="text-xl font-semibold text-gray-100 mb-2">{t("age_title")}</h2>
-            <p className="text-sm text-gray-60 mb-6">{t("age_subtitle")}</p>
-            <div className="flex flex-wrap justify-center gap-3 mb-6">
-              {AGE_BANDS.map((age) => (
-                <button key={age} onClick={() => toggleAge(age)}
-                  className={`px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-150
-                    ${selectedAges.includes(age)
-                      ? "bg-ethika-green text-white shadow-sm"
-                      : "bg-gray-10 text-gray-70 hover:bg-gray-20 border border-gray-30"
-                    }`}>
-                  {t(`age_${age}`)}
-                </button>
-              ))}
-            </div>
-            <div className="flex justify-center gap-3">
-              <button onClick={saveAges} disabled={selectedAges.length === 0}
-                className="btn-primary px-6 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed">
-                {t("age_save")}
-              </button>
-              <button onClick={() => setHasStoredAges(true)} className="btn-ghost px-6 py-2.5">
-                {t("age_skip")}
-              </button>
-            </div>
-            {ageSaved && (
-              <p className="text-sm text-ethika-green mt-4 animate-fade-in font-medium">{t("age_saved")}</p>
+      {/* ──── PERSONALIZED RECOMMENDATIONS ──── */}
+      {isPersonalized && (
+        <section className="py-8 sm:py-10 bg-neutral-50 border-t border-neutral-100">
+          <div className="max-w-5xl mx-auto px-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 mb-1">
+              {isAr ? "مخصص لك" : "Recommended for you"}
+            </h2>
+            <p className="text-sm text-neutral-500 mb-6">
+              {isAr ? "بناءً على إجاباتك وأعمار أطفالك." : "Based on your answers and your children's ages."}
+            </p>
+
+            {/* Recommended Tools */}
+            {recommendedTools.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-base font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+                  <Tools size={20} className="text-emerald-600" />
+                  {isAr ? "أدوات مقترحة" : "Suggested Tools"}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {recommendedTools.map((tool) => (
+                    <div key={tool.id} className="bg-white rounded-2xl border border-neutral-200 p-5 hover:shadow-md hover:border-ethika-green/40 transition-all">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-ethika-green font-bold text-lg">
+                          {tool.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-base font-bold text-neutral-900">{tool.name}</h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tool.free ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                              {tool.free ? (isAr ? "مجاني" : "Free") : (isAr ? "مدفوع" : "Paid")}
+                            </span>
+                            <span className="text-[11px] text-neutral-400">{tool.ageMin}&ndash;{tool.ageMax} {isAr ? "سنة" : "yrs"}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-neutral-600 leading-relaxed mb-3">
+                        {isAr ? tool.description.ar : tool.description.en}
+                      </p>
+                      {tool.link !== "#" && (
+                        <a href={tool.link} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-ethika-green hover:underline">
+                          {isAr ? "زيارة" : "Visit"} &rarr;
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommended Activities */}
+            {recommendedActivities.length > 0 && (
+              <div>
+                <h3 className="text-base font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+                  <Favorite size={20} className="text-rose-600" />
+                  {isAr ? "أنشطة عائلية مقترحة" : "Suggested Family Activities"}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {recommendedActivities.map((act) => (
+                    <a key={act.id} href={`/${locale}/try-ai`}
+                      className="bg-white rounded-2xl border border-neutral-200 p-5 hover:shadow-md hover:border-emerald-200 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                          {act.ageBand === "6-9" ? (isAr ? "٦–٩ سنوات" : "Ages 6–9") : (isAr ? "١٠–١٣ سنة" : "Ages 10–13")}
+                        </span>
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600 font-medium">
+                          {act.durationMinutes} {isAr ? "دقيقة" : "min"}
+                        </span>
+                      </div>
+                      <h4 className="text-base font-bold text-neutral-900 mb-1.5">{isAr ? act.title.ar : act.title.en}</h4>
+                      <p className="text-sm text-neutral-500 italic">
+                        &ldquo;{isAr ? act.openingPrompt.ar.slice(0, 80) : act.openingPrompt.en.slice(0, 80)}&hellip;&rdquo;
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Concern-based links */}
+            {profile!.concerns.length > 0 && (
+              <div className="mt-8 bg-amber-50 rounded-2xl p-5 border border-amber-100">
+                <h3 className="text-base font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                  <CheckmarkFilled size={20} />
+                  {isAr ? "بناءً على مخاوفك" : "Based on your concerns"}
+                </h3>
+                <p className="text-sm text-amber-700 mb-3">
+                  {isAr ? "اخترت هذه المواضيع كمخاوف — إليك مواردنا المخصصة:" : "You identified these as concerns — here are our focused resources:"}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {profile!.concerns.includes("deepfakes") && (
+                    <a href={`/${locale}/risks`} className="text-sm font-medium px-4 py-2 bg-white rounded-xl text-amber-800 border border-amber-200 hover:border-amber-300 transition-all">
+                      {isAr ? "التزييف العميق" : "Deepfakes & Fake Images"} &rarr;
+                    </a>
+                  )}
+                  {profile!.concerns.includes("online_safety") && (
+                    <a href={`/${locale}/crisis`} className="text-sm font-medium px-4 py-2 bg-white rounded-xl text-amber-800 border border-amber-200 hover:border-amber-300 transition-all">
+                      {isAr ? "السلامة على الإنترنت" : "Online Safety Guide"} &rarr;
+                    </a>
+                  )}
+                  {profile!.concerns.includes("privacy") && (
+                    <a href={`/${locale}/rights`} className="text-sm font-medium px-4 py-2 bg-white rounded-xl text-amber-800 border border-amber-200 hover:border-amber-300 transition-all">
+                      {isAr ? "الخصوصية وحماية البيانات" : "Privacy & Data Protection"} &rarr;
+                    </a>
+                  )}
+                  {profile!.concerns.includes("chatbots") && (
+                    <a href={`/${locale}/risks`} className="text-sm font-medium px-4 py-2 bg-white rounded-xl text-amber-800 border border-amber-200 hover:border-amber-300 transition-all">
+                      {isAr ? "التعلق بالروبوتات" : "Chatbot Attachment"} &rarr;
+                    </a>
+                  )}
+                  {profile!.concerns.includes("cyberbullying") && (
+                    <a href={`/${locale}/crisis`} className="text-sm font-medium px-4 py-2 bg-white rounded-xl text-amber-800 border border-amber-200 hover:border-amber-300 transition-all">
+                      {isAr ? "التنمر الإلكتروني" : "Cyberbullying"} &rarr;
+                    </a>
+                  )}
+                  {profile!.concerns.includes("screen_time") && (
+                    <a href={`/${locale}/try-ai`} className="text-sm font-medium px-4 py-2 bg-white rounded-xl text-amber-800 border border-amber-200 hover:border-amber-300 transition-all">
+                      {isAr ? "وقت الشاشة" : "Screen Time Balance"} &rarr;
+                    </a>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </section>
       )}
 
-      {/* From Ethika + What's New */}
-      <section className="py-10 bg-white">
+      {/* ──── FOR ANONYMOUS USERS: Generic overview ──── */}
+      {!isPersonalized && (
+        <section className="py-8 sm:py-10 bg-neutral-50 border-t border-neutral-100">
+          <div className="max-w-5xl mx-auto px-4 text-center">
+            <h2 className="text-xl font-bold text-neutral-900 mb-2">
+              {isAr ? "خصّص تجربتك" : "Personalize your experience"}
+            </h2>
+            <p className="text-base text-neutral-500 mb-5 max-w-lg mx-auto">
+              {isAr ? "أجب على بضعة أسئلة سريعة وسنعرض لك أدوات وأنشطة ومصادر مخصصة لعائلتك." : "Answer a few quick questions and we'll show you tools, activities, and resources tailored to your family."}
+            </p>
+            <button onClick={() => setShowOnboarding(true)}
+              className="bg-ethika-green text-white font-semibold px-8 py-3.5 rounded-2xl text-base hover:bg-ethika-green-dark transition-all">
+              {isAr ? "ابدأ الاستبيان" : "Start the questionnaire"} &rarr;
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* ──── From Ethika + What's New ──── */}
+      <section className="py-8 sm:py-10 bg-white border-t border-neutral-100">
         <div className="max-w-5xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="tile border-l-4 rtl:border-l-0 rtl:border-r-4 border-ethika-green">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="bg-neutral-50 rounded-2xl border border-neutral-200 p-6">
               <div className="flex items-center gap-2 mb-3">
-                <span className="voice-tag-ethika">{isAr ? "إثيكا تقول" : "Ethika says"}</span>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-ethika-green-50 text-ethika-green">
+                  {isAr ? "إثيكا تقول" : "Ethika says"}
+                </span>
               </div>
-              <h3 className="text-base font-semibold text-gray-100 mb-2">{t("from_sek_position")}</h3>
-              <p className="text-sm text-gray-70 leading-relaxed mb-3">{t("from_sek_position_text")}</p>
-              <p className="text-xs text-gray-50">{t("from_sek_signer")}</p>
-              <p className="text-xs text-gray-50">{t("from_sek_date")}</p>
+              <h3 className="text-lg font-bold text-neutral-900 mb-2">{t("from_sek_position")}</h3>
+              <p className="text-sm text-neutral-600 leading-relaxed mb-3 line-clamp-3">{t("from_sek_position_text")}</p>
+              <p className="text-xs text-neutral-400">{t("from_sek_signer")}</p>
               <a href={`/${locale}/from-sek`}
-                className="inline-flex items-center gap-1 text-sm text-ethika-green font-medium mt-3 hover:underline">
-                {isAr ? "اقرأ المزيد" : "Read more"}
-                <svg className="w-3.5 h-3.5 flip-rtl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
+                className="inline-flex items-center gap-1 text-sm text-ethika-green font-semibold mt-4 hover:underline">
+                {isAr ? "اقرأ المزيد" : "Read more"} &rarr;
               </a>
             </div>
 
-            <div className="tile">
-              <h3 className="text-base font-semibold text-gray-100 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-ethika-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
-                </svg>
+            <div className="bg-neutral-50 rounded-2xl border border-neutral-200 p-6">
+              <h3 className="text-lg font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                <Blog size={20} className="text-amber-500" />
                 {t("whats_new")}
               </h3>
               <ul className="space-y-3">
-                <li className="flex items-start gap-2 text-sm text-gray-70">
-                  <span className="w-1.5 h-1.5 bg-ethika-green rounded-full mt-2 shrink-0"></span>
+                <li className="flex items-start gap-2 text-sm text-neutral-600">
+                  <span className="w-2 h-2 bg-ethika-green rounded-full mt-1.5 shrink-0"></span>
                   {t("whats_new_item1")}
                 </li>
-                <li className="flex items-start gap-2 text-sm text-gray-70">
-                  <span className="w-1.5 h-1.5 bg-ethika-green rounded-full mt-2 shrink-0"></span>
+                <li className="flex items-start gap-2 text-sm text-neutral-600">
+                  <span className="w-2 h-2 bg-ethika-green rounded-full mt-1.5 shrink-0"></span>
                   {t("whats_new_item2")}
                 </li>
               </ul>
+              <a href={`/${locale}/explore`}
+                className="inline-flex items-center gap-1 text-sm text-ethika-green font-semibold mt-4 hover:underline">
+                {t("explore_all")} &rarr;
+              </a>
             </div>
           </div>
         </div>
