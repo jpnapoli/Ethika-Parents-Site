@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
+import { WatsonxAi, Tools, ArrowRight, Document } from "@carbon/icons-react";
 
 type Props = { locale: string };
 
@@ -19,57 +20,15 @@ const TOOLS_10_13 = [
 ];
 
 const ACTIVITIES_6_9 = [
-  {
-    title: { en: "Draw and Sort with AI", ar: "ارسم وصنّف مع الذكاء الاصطناعي" },
-    need: { en: "A computer or tablet, Google Quick Draw!", ar: "حاسوب أو جهاز لوحي، Google Quick, Draw!" },
-    duration: 20,
-    say: { en: "Let's play a game where you draw something and a computer tries to guess what it is! Do you think a computer can guess better than me?", ar: "هيا نلعب لعبة ترسم فيها شيئاً والحاسوب يحاول تخمينه! هل تظن أن الحاسوب يخمّن أفضل مني؟" },
-    notice: { en: "Watch how your child reacts when the AI guesses right vs wrong. Notice if they start drawing differently to 'help' the AI.", ar: "راقب ردة فعل طفلك عندما يخمّن الذكاء الاصطناعي بشكل صحيح أو خاطئ. لاحظ إذا بدأ يرسم بشكل مختلف 'لمساعدة' الذكاء الاصطناعي." },
-    after: { en: "Ask: 'How do you think the computer knew what you were drawing? Can it think like you?' This opens a conversation about pattern recognition vs understanding.", ar: "اسأل: 'كيف تظن أن الحاسوب عرف ما كنت ترسمه؟ هل يستطيع التفكير مثلك؟' هذا يفتح حواراً عن التعرف على الأنماط مقابل الفهم." },
-  },
-  {
-    title: { en: "Teach a Machine to See", ar: "علّم الآلة أن ترى" },
-    need: { en: "A computer with webcam, Google Teachable Machine", ar: "حاسوب بكاميرا، Google Teachable Machine" },
-    duration: 30,
-    say: { en: "Today you're going to be the teacher! You'll teach a computer to recognize things — like whether you're smiling or frowning.", ar: "اليوم ستكون أنت المعلم! ستعلّم الحاسوب التعرف على الأشياء — مثل هل أنت تبتسم أو عابس." },
-    notice: { en: "Does your child understand they're providing examples? Do they try creative combinations?", ar: "هل يفهم طفلك أنه يقدم أمثلة؟ هل يحاول تركيبات إبداعية؟" },
-    after: { en: "Ask: 'What happened when you only showed a few examples? What if you showed many? This is how AI learns — from lots of examples.'", ar: "اسأل: 'ماذا حدث عندما أريته أمثلة قليلة فقط؟ ماذا لو أريته الكثير؟ هكذا يتعلم الذكاء الاصطناعي — من أمثلة كثيرة.'" },
-  },
-  {
-    title: { en: "Spot the AI Art", ar: "اكتشف فن الذكاء الاصطناعي" },
-    need: { en: "Printed or screen images — mix of AI-generated and real photos", ar: "صور مطبوعة أو على الشاشة — مزيج من صور مولدة بالذكاء الاصطناعي وصور حقيقية" },
-    duration: 15,
-    say: { en: "Some of these pictures were made by a computer and some were taken by a real photographer. Can you guess which is which?", ar: "بعض هذه الصور صنعها حاسوب وبعضها التقطها مصور حقيقي. هل تستطيع تخمين أيهما أيهما؟" },
-    notice: { en: "What details does your child focus on? Do they develop strategies for telling the difference?", ar: "ما التفاصيل التي يركز عليها طفلك؟ هل يطور استراتيجيات للتمييز بينها؟" },
-    after: { en: "Talk about how AI can make fake things that look real. Keep it light: 'That's why we always check if something is real before we share it.'", ar: "تحدث عن كيف يمكن للذكاء الاصطناعي صنع أشياء مزيفة تبدو حقيقية. اجعلها خفيفة: 'لهذا نتأكد دائماً إذا كان شيء حقيقياً قبل مشاركته.'" },
-  },
+  { title: { en: "Draw and Sort with AI", ar: "\u0627\u0631\u0633\u0645 \u0648\u0635\u0646\u0651\u0641 \u0645\u0639 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A" }, need: { en: "A computer or tablet, Google Quick Draw!", ar: "\u062D\u0627\u0633\u0648\u0628 \u0623\u0648 \u062C\u0647\u0627\u0632 \u0644\u0648\u062D\u064A\u060C Google Quick, Draw!" }, duration: 20, say: { en: "Let\u2019s play a game where you draw something and a computer tries to guess what it is!", ar: "\u0647\u064A\u0627 \u0646\u0644\u0639\u0628 \u0644\u0639\u0628\u0629 \u062A\u0631\u0633\u0645 \u0641\u064A\u0647\u0627 \u0634\u064A\u0626\u0627\u064B \u0648\u0627\u0644\u062D\u0627\u0633\u0648\u0628 \u064A\u062D\u0627\u0648\u0644 \u062A\u062E\u0645\u064A\u0646\u0647!" }, notice: { en: "Watch how your child reacts when the AI guesses right vs wrong.", ar: "\u0631\u0627\u0642\u0628 \u0631\u062F\u0629 \u0641\u0639\u0644 \u0637\u0641\u0644\u0643 \u0639\u0646\u062F\u0645\u0627 \u064A\u062E\u0645\u0651\u0646 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0628\u0634\u0643\u0644 \u0635\u062D\u064A\u062D \u0623\u0648 \u062E\u0627\u0637\u0626." }, after: { en: "Ask: \u2018How do you think the computer knew what you were drawing?\u2019", ar: "\u0627\u0633\u0623\u0644: \u2018\u0643\u064A\u0641 \u062A\u0638\u0646 \u0623\u0646 \u0627\u0644\u062D\u0627\u0633\u0648\u0628 \u0639\u0631\u0641 \u0645\u0627 \u0643\u0646\u062A \u062A\u0631\u0633\u0645\u0647\u061F\u2019" } },
+  { title: { en: "Teach a Machine to See", ar: "\u0639\u0644\u0651\u0645 \u0627\u0644\u0622\u0644\u0629 \u0623\u0646 \u062A\u0631\u0649" }, need: { en: "A computer with webcam, Google Teachable Machine", ar: "\u062D\u0627\u0633\u0648\u0628 \u0628\u0643\u0627\u0645\u064A\u0631\u0627\u060C Google Teachable Machine" }, duration: 30, say: { en: "Today you\u2019re going to be the teacher! You\u2019ll teach a computer to recognize things.", ar: "\u0627\u0644\u064A\u0648\u0645 \u0633\u062A\u0643\u0648\u0646 \u0623\u0646\u062A \u0627\u0644\u0645\u0639\u0644\u0645! \u0633\u062A\u0639\u0644\u0651\u0645 \u0627\u0644\u062D\u0627\u0633\u0648\u0628 \u0627\u0644\u062A\u0639\u0631\u0641 \u0639\u0644\u0649 \u0627\u0644\u0623\u0634\u064A\u0627\u0621." }, notice: { en: "Does your child understand they\u2019re providing examples?", ar: "\u0647\u0644 \u064A\u0641\u0647\u0645 \u0637\u0641\u0644\u0643 \u0623\u0646\u0647 \u064A\u0642\u062F\u0645 \u0623\u0645\u062B\u0644\u0629\u061F" }, after: { en: "Ask: \u2018What happened when you only showed a few examples?\u2019", ar: "\u0627\u0633\u0623\u0644: \u2018\u0645\u0627\u0630\u0627 \u062D\u062F\u062B \u0639\u0646\u062F\u0645\u0627 \u0623\u0631\u064A\u062A\u0647 \u0623\u0645\u062B\u0644\u0629 \u0642\u0644\u064A\u0644\u0629 \u0641\u0642\u0637\u061F\u2019" } },
+  { title: { en: "Spot the AI Art", ar: "\u0627\u0643\u062A\u0634\u0641 \u0641\u0646 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A" }, need: { en: "Printed or screen images \u2014 mix of AI-generated and real photos", ar: "\u0635\u0648\u0631 \u0645\u0637\u0628\u0648\u0639\u0629 \u0623\u0648 \u0639\u0644\u0649 \u0627\u0644\u0634\u0627\u0634\u0629 \u2014 \u0645\u0632\u064A\u062C \u0645\u0646 \u0635\u0648\u0631 \u0645\u0648\u0644\u062F\u0629 \u0628\u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0648\u0635\u0648\u0631 \u062D\u0642\u064A\u0642\u064A\u0629" }, duration: 15, say: { en: "Some pictures were made by a computer. Can you guess which?", ar: "\u0628\u0639\u0636 \u0627\u0644\u0635\u0648\u0631 \u0635\u0646\u0639\u0647\u0627 \u062D\u0627\u0633\u0648\u0628. \u0647\u0644 \u062A\u0633\u062A\u0637\u064A\u0639 \u062A\u062E\u0645\u064A\u0646 \u0623\u064A\u0647\u0627\u061F" }, notice: { en: "What details does your child focus on?", ar: "\u0645\u0627 \u0627\u0644\u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u062A\u064A \u064A\u0631\u0643\u0632 \u0639\u0644\u064A\u0647\u0627 \u0637\u0641\u0644\u0643\u061F" }, after: { en: "Talk about how AI can make fake things that look real.", ar: "\u062A\u062D\u062F\u062B \u0639\u0646 \u0643\u064A\u0641 \u064A\u0645\u0643\u0646 \u0644\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0635\u0646\u0639 \u0623\u0634\u064A\u0627\u0621 \u0645\u0632\u064A\u0641\u0629 \u062A\u0628\u062F\u0648 \u062D\u0642\u064A\u0642\u064A\u0629." } },
 ];
 
 const ACTIVITIES_10_13 = [
-  {
-    title: { en: "Fact-Check the AI", ar: "تحقق من حقائق الذكاء الاصطناعي" },
-    need: { en: "Access to ChatGPT or similar (parent-supervised), a search engine", ar: "وصول إلى ChatGPT أو مشابه (بإشراف الوالدين)، محرك بحث" },
-    duration: 30,
-    say: { en: "Let's ask the AI some questions you already know the answers to — and some you don't. Then let's check if it got them right.", ar: "هيا نسأل الذكاء الاصطناعي أسئلة تعرف أنت إجاباتها — وبعضاً لا تعرفه. ثم لنتحقق هل أجاب بشكل صحيح." },
-    notice: { en: "Does your child trust the AI answers automatically? Do they learn to verify?", ar: "هل يثق طفلك بإجابات الذكاء الاصطناعي تلقائياً؟ هل يتعلم التحقق؟" },
-    after: { en: "Discuss: 'The AI was confident even when wrong. What does that teach us about trusting AI — or anything online?'", ar: "ناقش: 'كان الذكاء الاصطناعي واثقاً حتى عندما أخطأ. ماذا يعلمنا هذا عن الثقة بالذكاء الاصطناعي — أو أي شيء على الإنترنت؟'" },
-  },
-  {
-    title: { en: "Build an AI Bias Detector", ar: "ابنِ كاشف تحيز الذكاء الاصطناعي" },
-    need: { en: "A notebook, access to an image generation AI (parent-supervised)", ar: "دفتر ملاحظات، وصول إلى ذكاء اصطناعي لتوليد الصور (بإشراف الوالدين)" },
-    duration: 30,
-    say: { en: "Let's ask the AI to draw different types of people — a doctor, a nurse, a CEO, a teacher. Let's see what it assumes.", ar: "هيا نطلب من الذكاء الاصطناعي رسم أنواع مختلفة من الناس — طبيب، ممرضة، مدير تنفيذي، معلم. لنرى ماذا يفترض." },
-    notice: { en: "Does the AI default to certain genders, races, or ages for certain professions? Does your child notice?", ar: "هل يفترض الذكاء الاصطناعي جنساً أو عرقاً أو عمراً معيناً لمهن معينة؟ هل يلاحظ طفلك؟" },
-    after: { en: "Talk about where bias comes from: 'AI learns from data made by humans. If the data has bias, the AI has bias too.'", ar: "تحدث عن مصدر التحيز: 'الذكاء الاصطناعي يتعلم من بيانات صنعها البشر. إذا كانت البيانات متحيزة، يكون الذكاء الاصطناعي متحيزاً أيضاً.'" },
-  },
-  {
-    title: { en: "AI Privacy Audit", ar: "تدقيق خصوصية الذكاء الاصطناعي" },
-    need: { en: "Your child's phone or tablet (with their permission)", ar: "هاتف أو جهاز طفلك اللوحي (بإذنه)" },
-    duration: 25,
-    say: { en: "Let's look at what apps on your phone use AI and what data they collect. We'll check the privacy settings together.", ar: "هيا ننظر أي تطبيقات على هاتفك تستخدم الذكاء الاصطناعي وما البيانات التي تجمعها. سنفحص إعدادات الخصوصية معاً." },
-    notice: { en: "Is your child surprised by what data apps collect? Do they understand what 'permissions' mean?", ar: "هل يتفاجأ طفلك مما تجمعه التطبيقات؟ هل يفهم ماذا تعني 'الأذونات'؟" },
-    after: { en: "Together, decide which permissions to revoke. Explain: 'You have the right to say no to data collection — Saudi law supports this.'", ar: "معاً، قرروا أي أذونات تسحبونها. اشرح: 'لك الحق في رفض جمع البيانات — القانون السعودي يدعم هذا.'" },
-  },
+  { title: { en: "Fact-Check the AI", ar: "\u062A\u062D\u0642\u0642 \u0645\u0646 \u062D\u0642\u0627\u0626\u0642 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A" }, need: { en: "Access to ChatGPT (parent-supervised), a search engine", ar: "\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 ChatGPT (\u0628\u0625\u0634\u0631\u0627\u0641 \u0627\u0644\u0648\u0627\u0644\u062F\u064A\u0646)\u060C \u0645\u062D\u0631\u0643 \u0628\u062D\u062B" }, duration: 30, say: { en: "Let\u2019s ask the AI some questions you already know the answers to.", ar: "\u0647\u064A\u0627 \u0646\u0633\u0623\u0644 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0623\u0633\u0626\u0644\u0629 \u062A\u0639\u0631\u0641 \u0623\u0646\u062A \u0625\u062C\u0627\u0628\u0627\u062A\u0647\u0627." }, notice: { en: "Does your child trust the AI answers automatically?", ar: "\u0647\u0644 \u064A\u062B\u0642 \u0637\u0641\u0644\u0643 \u0628\u0625\u062C\u0627\u0628\u0627\u062A \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B\u061F" }, after: { en: "Discuss: \u2018The AI was confident even when wrong.\u2019", ar: "\u0646\u0627\u0642\u0634: \u2018\u0643\u0627\u0646 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0648\u0627\u062B\u0642\u0627\u064B \u062D\u062A\u0649 \u0639\u0646\u062F\u0645\u0627 \u0623\u062E\u0637\u0623.\u2019" } },
+  { title: { en: "Build an AI Bias Detector", ar: "\u0627\u0628\u0646\u0650 \u0643\u0627\u0634\u0641 \u062A\u062D\u064A\u0632 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A" }, need: { en: "A notebook, access to an image generation AI (parent-supervised)", ar: "\u062F\u0641\u062A\u0631 \u0645\u0644\u0627\u062D\u0638\u0627\u062A\u060C \u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0630\u0643\u0627\u0621 \u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0644\u062A\u0648\u0644\u064A\u062F \u0627\u0644\u0635\u0648\u0631 (\u0628\u0625\u0634\u0631\u0627\u0641 \u0627\u0644\u0648\u0627\u0644\u062F\u064A\u0646)" }, duration: 30, say: { en: "Let\u2019s ask the AI to draw different types of people.", ar: "\u0647\u064A\u0627 \u0646\u0637\u0644\u0628 \u0645\u0646 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0631\u0633\u0645 \u0623\u0646\u0648\u0627\u0639 \u0645\u062E\u062A\u0644\u0641\u0629 \u0645\u0646 \u0627\u0644\u0646\u0627\u0633." }, notice: { en: "Does the AI default to certain genders or races for professions?", ar: "\u0647\u0644 \u064A\u0641\u062A\u0631\u0636 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u062C\u0646\u0633\u0627\u064B \u0623\u0648 \u0639\u0631\u0642\u0627\u064B \u0645\u0639\u064A\u0646\u0627\u064B \u0644\u0645\u0647\u0646 \u0645\u0639\u064A\u0646\u0629\u061F" }, after: { en: "Talk about where bias comes from: \u2018AI learns from data made by humans.\u2019", ar: "\u062A\u062D\u062F\u062B \u0639\u0646 \u0645\u0635\u062F\u0631 \u0627\u0644\u062A\u062D\u064A\u0632: \u2018\u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u064A\u062A\u0639\u0644\u0645 \u0645\u0646 \u0628\u064A\u0627\u0646\u0627\u062A \u0635\u0646\u0639\u0647\u0627 \u0627\u0644\u0628\u0634\u0631.\u2019" } },
+  { title: { en: "AI Privacy Audit", ar: "\u062A\u062F\u0642\u064A\u0642 \u062E\u0635\u0648\u0635\u064A\u0629 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A" }, need: { en: "Your child\u2019s phone or tablet (with their permission)", ar: "\u0647\u0627\u062A\u0641 \u0623\u0648 \u062C\u0647\u0627\u0632 \u0637\u0641\u0644\u0643 \u0627\u0644\u0644\u0648\u062D\u064A (\u0628\u0625\u0630\u0646\u0647)" }, duration: 25, say: { en: "Let\u2019s look at what apps on your phone use AI.", ar: "\u0647\u064A\u0627 \u0646\u0646\u0638\u0631 \u0623\u064A \u062A\u0637\u0628\u064A\u0642\u0627\u062A \u0639\u0644\u0649 \u0647\u0627\u062A\u0641\u0643 \u062A\u0633\u062A\u062E\u062F\u0645 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A." }, notice: { en: "Is your child surprised by what data apps collect?", ar: "\u0647\u0644 \u064A\u062A\u0641\u0627\u062C\u0623 \u0637\u0641\u0644\u0643 \u0645\u0645\u0627 \u062A\u062C\u0645\u0639\u0647 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u0627\u062A\u061F" }, after: { en: "Together, decide which permissions to revoke.", ar: "\u0645\u0639\u0627\u064B\u060C \u0642\u0631\u0631\u0648\u0627 \u0623\u064A \u0623\u0630\u0648\u0646\u0627\u062A \u062A\u0633\u062D\u0628\u0648\u0646\u0647\u0627." } },
 ];
 
 export default function TryAiClient({ locale }: Props) {
@@ -90,75 +49,60 @@ export default function TryAiClient({ locale }: Props) {
 
   return (
     <div className="animate-fade-in">
-      <section className="bg-amber-50 border-b border-amber-200 py-8 sm:py-12">
+      <div className="bg-emerald-50 border-b border-emerald-100 py-6">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-brand-navy mb-2">{t("title")}</h1>
-          <p className="text-base text-carbon-gray-70">{t("subtitle")}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-ethika-green-dark mb-1">{t("title")}</h1>
+          <p className="text-sm text-neutral-600">{t("subtitle")}</p>
         </div>
-      </section>
+      </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Age Tab */}
-        <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setActiveTab("6_9")}
-            className={`px-5 py-2.5 text-sm font-medium transition-all duration-150
-              ${activeTab === "6_9" ? "bg-brand-navy text-white" : "bg-carbon-gray-10 text-carbon-gray-70 hover:bg-carbon-gray-20"}`}
-          >
+      {/* Age filter bar at top */}
+      <div className="bg-white border-b border-neutral-100 sticky top-14 z-30">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+          <span className="text-xs font-semibold text-neutral-500">{isAr ? "\u0627\u0644\u0639\u0645\u0631:" : "Age:"}</span>
+          <button onClick={() => setActiveTab("6_9")}
+            className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${activeTab === "6_9" ? "bg-ethika-green text-white" : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"}`}>
             {t("age_6_9_title")}
           </button>
-          <button
-            onClick={() => setActiveTab("10_13")}
-            className={`px-5 py-2.5 text-sm font-medium transition-all duration-150
-              ${activeTab === "10_13" ? "bg-brand-navy text-white" : "bg-carbon-gray-10 text-carbon-gray-70 hover:bg-carbon-gray-20"}`}
-          >
+          <button onClick={() => setActiveTab("10_13")}
+            className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${activeTab === "10_13" ? "bg-ethika-green text-white" : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"}`}>
             {t("age_10_13_title")}
           </button>
         </div>
+      </div>
 
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Dev Note */}
-        <div className="tile border-l-4 rtl:border-l-0 rtl:border-r-4 border-brand-gold mb-8">
-          <h3 className="text-sm font-semibold text-brand-gold mb-2">{t("dev_note")}</h3>
-          <p className="text-sm text-carbon-gray-70 leading-relaxed">
-            {activeTab === "6_9" ? t("age_6_9_dev") : t("age_10_13_dev")}
-          </p>
+        <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4 mb-6">
+          <h3 className="text-sm font-semibold text-amber-700 mb-1">{t("dev_note")}</h3>
+          <p className="text-sm text-neutral-600 leading-relaxed">{activeTab === "6_9" ? t("age_6_9_dev") : t("age_10_13_dev")}</p>
         </div>
 
         {/* Activities */}
-        <h2 className="text-lg font-semibold text-brand-navy mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-          </svg>
+        <h2 className="text-base font-bold text-neutral-800 mb-4 flex items-center gap-2">
+          <WatsonxAi size={20} className="text-ethika-green" />
           {t("activities_title")}
         </h2>
-        <div className="space-y-5 mb-10">
+        <div className="space-y-4 mb-10">
           {activities.map((act, i) => (
-            <div key={i} className="card p-5">
-              <h3 className="text-base font-semibold text-carbon-gray-100 mb-4">
-                {isAr ? act.title.ar : act.title.en}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-carbon-gray-100">{t("what_need")}: </span>
-                  <span className="text-carbon-gray-70">{isAr ? act.need.ar : act.need.en}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-carbon-gray-100">{t("how_long")}: </span>
-                  <span className="text-carbon-gray-70">{t("minutes", { count: act.duration })}</span>
-                </div>
+            <div key={i} className="bg-white rounded-2xl border border-neutral-200 p-5">
+              <h3 className="text-base font-semibold text-neutral-800 mb-4">{isAr ? act.title.ar : act.title.en}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
+                <div><span className="font-medium text-neutral-700">{t("what_need")}: </span><span className="text-neutral-600">{isAr ? act.need.ar : act.need.en}</span></div>
+                <div><span className="font-medium text-neutral-700">{t("how_long")}: </span><span className="text-neutral-600">{t("minutes", { count: act.duration })}</span></div>
               </div>
-              <div className="mt-4 space-y-3">
-                <div className="bg-blue-50 p-3 rounded-sm">
-                  <span className="text-xs font-semibold text-brand-navy block mb-1">{t("what_say")}</span>
-                  <p className="text-sm text-carbon-gray-70 italic">&ldquo;{isAr ? act.say.ar : act.say.en}&rdquo;</p>
+              <div className="space-y-3">
+                <div className="bg-blue-50 p-3 rounded-xl">
+                  <span className="text-xs font-semibold text-blue-700 block mb-1">{t("what_say")}</span>
+                  <p className="text-sm text-neutral-600 italic">&ldquo;{isAr ? act.say.ar : act.say.en}&rdquo;</p>
                 </div>
-                <div className="bg-carbon-gray-10 p-3 rounded-sm">
-                  <span className="text-xs font-semibold text-carbon-gray-100 block mb-1">{t("what_notice")}</span>
-                  <p className="text-sm text-carbon-gray-70">{isAr ? act.notice.ar : act.notice.en}</p>
+                <div className="bg-neutral-50 p-3 rounded-xl">
+                  <span className="text-xs font-semibold text-neutral-700 block mb-1">{t("what_notice")}</span>
+                  <p className="text-sm text-neutral-600">{isAr ? act.notice.ar : act.notice.en}</p>
                 </div>
-                <div className="bg-green-50 p-3 rounded-sm">
-                  <span className="text-xs font-semibold text-brand-green block mb-1">{t("what_after")}</span>
-                  <p className="text-sm text-carbon-gray-70">{isAr ? act.after.ar : act.after.en}</p>
+                <div className="bg-emerald-50 p-3 rounded-xl">
+                  <span className="text-xs font-semibold text-emerald-700 block mb-1">{t("what_after")}</span>
+                  <p className="text-sm text-neutral-600">{isAr ? act.after.ar : act.after.en}</p>
                 </div>
               </div>
             </div>
@@ -166,48 +110,39 @@ export default function TryAiClient({ locale }: Props) {
         </div>
 
         {/* Tools */}
-        <h2 className="text-lg font-semibold text-brand-navy mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.384 3.18A1.25 1.25 0 014.25 17.25V6.75a1.25 1.25 0 011.786-1.1l5.384 3.18a.75.75 0 010 1.34zm0 0l5.384 3.18A1.25 1.25 0 0018.59 17.25V6.75a1.25 1.25 0 00-1.786-1.1l-5.384 3.18" />
-          </svg>
+        <h2 className="text-base font-bold text-neutral-800 mb-4 flex items-center gap-2">
+          <Tools size={20} className="text-ethika-green" />
           {t("tools_title")}
         </h2>
         <div className="space-y-3 mb-10">
           {tools.map((tool) => (
-            <div key={tool.name} className="card p-4">
+            <div key={tool.name} className="bg-white rounded-2xl border border-neutral-200 p-4">
               {(tool as any).ageWarning && (
-                <div className="bg-amber-50 border border-amber-300 text-amber-800 text-xs p-2 mb-3 rounded-sm">
-                  {t("age_warning", { min: tool.minAge })}
-                </div>
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-2 mb-3 rounded-xl font-medium">{t("age_warning", { min: tool.minAge })}</div>
               )}
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-carbon-gray-100">{tool.name}</h3>
-                  <p className="text-xs text-carbon-gray-60 mt-1">{tool.privacy}</p>
+                  <h3 className="text-sm font-semibold text-neutral-800">{tool.name}</h3>
+                  <p className="text-xs text-neutral-500 mt-1">{tool.privacy}</p>
                 </div>
-                <a
-                  href={tool.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-ghost text-xs px-3 py-1.5 flex-shrink-0 border border-carbon-gray-30"
-                >
-                  {isAr ? "زيارة" : "Visit"} &rarr;
+                <a href={tool.link} target="_blank" rel="noopener noreferrer"
+                  className="text-xs font-semibold text-ethika-green hover:underline shrink-0 flex items-center gap-1">
+                  {isAr ? "\u0632\u064A\u0627\u0631\u0629" : "Visit"}
+                  <ArrowRight size={12} className="flip-rtl" />
                 </a>
               </div>
-              <div className="flex flex-wrap gap-2 mt-3">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${tool.free ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tool.free ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
                   {tool.free ? t("free") : t("paid")}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${tool.ksa ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tool.ksa ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
                   {tool.ksa ? t("ksa_yes") : t("ksa_no")}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${tool.arabic ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tool.arabic ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>
                   {tool.arabic ? t("arabic_yes") : t("arabic_no")}
                 </span>
                 {tool.minAge > 0 && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                    {t("min_age", { age: tool.minAge })}
-                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">{t("min_age", { age: tool.minAge })}</span>
                 )}
               </div>
             </div>
@@ -215,15 +150,13 @@ export default function TryAiClient({ locale }: Props) {
         </div>
 
         {/* Family Agreement */}
-        <div className="tile border-l-4 rtl:border-l-0 rtl:border-r-4 border-brand-green">
-          <h2 className="text-lg font-semibold text-brand-navy mb-2 flex items-center gap-2">
-            <svg className="w-5 h-5 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-            </svg>
+        <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-5">
+          <h2 className="text-base font-bold text-neutral-800 mb-2 flex items-center gap-2">
+            <Document size={20} className="text-ethika-green" />
             {t("agreement_title")}
           </h2>
-          <p className="text-sm text-carbon-gray-70 mb-3">{t("agreement_desc")}</p>
-          <button className="btn-primary text-sm px-5 py-2.5 bg-brand-green hover:bg-brand-green-light">
+          <p className="text-sm text-neutral-600 mb-3">{t("agreement_desc")}</p>
+          <button className="bg-ethika-green text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-ethika-green-dark transition-all">
             {t("agreement_download")}
           </button>
         </div>

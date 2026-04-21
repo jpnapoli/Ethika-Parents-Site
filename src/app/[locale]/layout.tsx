@@ -26,8 +26,9 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} dir={isRTL ? "rtl" : "ltr"}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#35a318" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-screen flex flex-col bg-white text-carbon-gray-100">
         <NextIntlClientProvider messages={messages}>
